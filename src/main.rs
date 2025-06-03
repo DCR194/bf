@@ -1,4 +1,7 @@
-use std::{char, env, fs, io};
+use std::{
+    char, env, fs,
+    io::{self, Read},
+};
 
 struct Program {
     instructions: String,
@@ -10,10 +13,7 @@ struct Program {
 fn get_input() -> String {
     let mut input = String::new();
     match io::stdin().read_line(&mut input) {
-        Ok(n) => {
-            println!("{} bytes read", n);
-            println!("{}", input);
-        }
+        Ok(_) => {}
         Err(error) => println!("error: {error}"),
     }
     input
@@ -46,8 +46,28 @@ fn handle_print_char(program: &mut Program) {
     print!("{}", program.tape[program.dp as usize] as char);
 }
 
-fn handle_accept_char(_program: &mut Program) {
-    println!("NOT CURRENTLY WORKING :)");
+fn handle_accept_char(program: &mut Program) -> io::Result<()> {
+    let mut stdin = io::stdin().lock();
+    let mut buffer = [0_u8; 1];
+
+    // Read a single byte
+    stdin.read_exact(&mut buffer)?;
+
+    // Extract the byte value
+    let byte = buffer[0];
+
+    // Check if the byte is within the ASCII range (0-127)
+    if byte < 128 {
+        // If it's ASCII, convert it to a char
+        // let char_value = byte as char;
+        // println!("Read character: {}", char_value);
+
+        program.tape[program.dp as usize] = byte;
+    } else {
+        panic!("Read non-ASCII character. More complex decoding needed.");
+    }
+
+    Ok(())
 }
 
 // Handle `[` instruction
@@ -118,7 +138,7 @@ fn run_bf(input: String) {
             '+' => handle_increment_databyte(&mut program),
             '-' => handle_decrement_databyte(&mut program),
             '.' => handle_print_char(&mut program),
-            ',' => handle_accept_char(&mut program),
+            ',' => handle_accept_char(&mut program).expect("Wrong Input"),
             '[' => handle_open_bracket(&mut program),
             ']' => handle_close_bracket(&mut program),
             _ => {}
