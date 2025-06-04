@@ -25,13 +25,22 @@ fn increment_pc(program: &mut Program) {
 
 fn handle_increment_dp(program: &mut Program) {
     program.dp += 1;
-    if program.tape.len() < program.dp as usize {
-        program.tape.resize(program.dp as usize * 2, 0);
-    }
+    // println!(
+    //     "DataPointer: {} \nVECSIZE: {}",
+    //     program.dp,
+    //     program.tape.len()
+    // );
+    // if program.tape.len() <= (program.dp as usize) {
+    //     program.tape.resize(program.tape.len() * 2, 0);
+    // }
 }
 
 fn handle_decrement_dp(program: &mut Program) {
+    if program.dp == 0 {
+        return;
+    }
     program.dp -= 1;
+    // println!("DecrementDP: {}", program.dp);
 }
 
 fn handle_increment_databyte(program: &mut Program) {
@@ -81,19 +90,16 @@ fn handle_open_bracket(program: &mut Program) {
     let mut count = 1;
 
     // Increment Program Counter by 1
-    program.pc += 1;
-
     //Increment Program Counter until we find the matching ]
     //This is a naive interpreter for brainf*ck so we don't care too much for wrong input
     //If you're asking why I am not explicitly checking for errors: **** you, that's why
     while count > 0 {
+        program.pc += 1;
         match program.instructions.as_bytes()[program.pc as usize] as char {
             '[' => count += 1,
             ']' => count -= 1,
             _ => {}
         }
-        // Yes, I could've just written += 1 but I like this better
-        increment_pc(program);
     }
 }
 
@@ -107,9 +113,10 @@ fn handle_close_bracket(program: &mut Program) {
     let mut count = 1;
 
     // Now we decrement because we want to go back
-    program.pc -= 1;
+    // program.pc -= 1;
 
     while count > 0 {
+        program.pc -= 1;
         match program.instructions.as_bytes()[program.pc as usize] as char {
             '[' => count -= 1,
             ']' => count += 1,
@@ -118,7 +125,6 @@ fn handle_close_bracket(program: &mut Program) {
         // Okay sure, say what you want about it being different from the other one
         // I AM NOT GOING TO PRETEND THIS WAS A VERY WELL THOUGHT OUT PROJECT
         // IT IS 1 AM RIGHT BEFORE A FLIGHT, cut me some slack
-        program.pc -= 1;
     }
 }
 
@@ -129,7 +135,7 @@ fn run_bf(input: String) {
         tape: Vec::new(),
         dp: 0,
     };
-    program.tape.resize(10000, 0);
+    program.tape.resize(30000, 0);
     while (program.pc as usize) < program.instructions.len() {
         // print!("DEBUG");
         match program.instructions.as_bytes()[program.pc as usize] as char {
